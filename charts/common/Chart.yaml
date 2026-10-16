@@ -1,0 +1,5 @@
+apiVersion: v2
+name: common
+description: Library chart - shared naming, labels, Deployment and Service templates
+type: library
+version: 0.1.0

@@ -1,0 +1,33 @@
+enabled: true
+replicaCount: 2
+image: {repository: node, tag: 20-alpine, pullPolicy: IfNotPresent}
+service: {type: ClusterIP, port: 80, targetPort: 3000}
+useIrsa: true
+waitForDb: true
+dbHost: ""          # empty = in-cluster postgres service; set for an external DB
+dbPort: 5432
+secretsStore: {enabled: true}
+# DB settings are read from env injected by Helm. Secrets come from Secrets Manager (synced K8s Secret).
+env:
+  - {name: DB_HOST, value: '{{ .Values.dbHost | default (print .Release.Name "-database") }}'}
+  - {name: DB_PORT, value: '{{ .Values.dbPort }}'}
+  - {name: DB_NAME, value: '{{ .Values.global.dbName }}'}
+  - {name: DB_USER, fromDbSecret: username}
+  - {name: DB_PASSWORD, fromDbSecret: password}
+  # $(VAR) is expanded by Kubernetes, so order matters (must come after the vars it uses)
+  - {name: DATABASE_URL, value: 'postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)'}
+command: ["node", "-e"]
+args:
+  - |
+    require('http').createServer((q, r) => {
+      r.setHeader('content-type', 'application/json');
+      r.end(JSON.stringify({status: 'ok', path: q.url, db_host: process.env.DB_HOST,
+        db_name: process.env.DB_NAME, database_url_present: !!process.env.DATABASE_URL}));
+    }).listen(3000);
+resources:
+  requests: {cpu: 100m, memory: 128Mi}
+  limits: {cpu: 300m, memory: 256Mi}
+livenessProbe: {httpGet: {path: /api/health, port: http}, initialDelaySeconds: 5, periodSeconds: 10}
+readinessProbe: {httpGet: {path: /api/health, port: http}, initialDelaySeconds: 2, periodSeconds: 5}
+podSecurityContext: {runAsNonRoot: true, runAsUser: 1000, seccompProfile: {type: RuntimeDefault}}
+containerSecurityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}

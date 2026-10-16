@@ -1,0 +1,55 @@
+{{- if .Values.networkPolicy.enabled }}
+# 1) Default deny all ingress for every pod in this release
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-default-deny-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  policyTypes: [Ingress]
+---
+# 2) Ingress controller -> frontend + api
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-allow-ingress-controller
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+    matchExpressions:
+      - {key: app.kubernetes.io/name, operator: In, values: [frontend, api]}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.networkPolicy.ingressControllerNamespace }}
+      ports:
+        - {protocol: TCP, port: {{ .Values.frontend.service.targetPort }}}
+        - {protocol: TCP, port: {{ .Values.api.service.targetPort }}}
+{{- if .Values.database.enabled }}
+---
+# 3) PostgreSQL accepts traffic ONLY from the API tier
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-db-allow-api-only
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: database
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: api
+              app.kubernetes.io/instance: {{ .Release.Name }}
+      ports:
+        - {protocol: TCP, port: {{ .Values.database.service.targetPort }}}
+{{- end }}
+{{- end }}

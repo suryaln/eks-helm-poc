@@ -1,0 +1,11 @@
+enabled: true
+replicaCount: 1
+image: {repository: postgres, tag: 16-alpine, pullPolicy: IfNotPresent}
+service: {type: ClusterIP, port: 5432, targetPort: 5432}
+secretsStore: {enabled: true}
+persistence: {size: 5Gi, storageClass: gp3}
+resources:
+  requests: {cpu: 100m, memory: 256Mi}
+  limits: {cpu: 500m, memory: 512Mi}
+podSecurityContext: {runAsNonRoot: true, runAsUser: 70, runAsGroup: 70, fsGroup: 70, seccompProfile: {type: RuntimeDefault}}
+containerSecurityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}

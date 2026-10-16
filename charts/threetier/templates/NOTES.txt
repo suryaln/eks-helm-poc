@@ -1,0 +1,6 @@
+{{ .Release.Name }} deployed.
+{{- if .Values.ingress.enabled }}
+Frontend: https://{{ .Values.ingress.host }}/
+API:      https://{{ .Values.ingress.host }}/api/health
+{{- end }}
+Cert status: kubectl get certificate -n {{ .Release.Namespace }}

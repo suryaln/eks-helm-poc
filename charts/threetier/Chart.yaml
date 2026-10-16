@@ -1,0 +1,11 @@
+apiVersion: v2
+name: threetier
+description: Umbrella chart - secure 3-tier app on EKS
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+dependencies:
+  - {name: common,   version: 0.1.0, repository: "file://../common"}
+  - {name: frontend, version: 0.1.0, repository: "file://../frontend", condition: frontend.enabled}
+  - {name: api,      version: 0.1.0, repository: "file://../api",      condition: api.enabled}
+  - {name: database, version: 0.1.0, repository: "file://../database", condition: database.enabled}

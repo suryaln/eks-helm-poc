@@ -1,0 +1,15 @@
+enabled: true
+replicaCount: 2
+image: {repository: nginxinc/nginx-unprivileged, tag: 1.27-alpine, pullPolicy: IfNotPresent}
+service: {type: ClusterIP, port: 80, targetPort: 8080}
+useIrsa: false
+waitForDb: false
+secretsStore: {enabled: false}
+env: []
+resources:
+  requests: {cpu: 50m, memory: 64Mi}
+  limits: {cpu: 200m, memory: 128Mi}
+livenessProbe: {httpGet: {path: /, port: http}, initialDelaySeconds: 5, periodSeconds: 10}
+readinessProbe: {httpGet: {path: /, port: http}, initialDelaySeconds: 2, periodSeconds: 5}
+podSecurityContext: {runAsNonRoot: true, runAsUser: 101, seccompProfile: {type: RuntimeDefault}}
+containerSecurityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}

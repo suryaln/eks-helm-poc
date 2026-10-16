@@ -1,0 +1,242 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "global",
+    "frontend",
+    "api",
+    "database",
+    "ingress",
+    "irsa",
+    "secretsManager"
+  ],
+  "definitions": {
+    "quantity": {
+      "type": [
+        "string",
+        "number"
+      ],
+      "pattern": "^([0-9]+m|[0-9]+(\\.[0-9]+)?|[0-9]+(Ki|Mi|Gi|Ti|k|M|G|T))$"
+    },
+    "resourceBlock": {
+      "type": "object",
+      "required": [
+        "cpu",
+        "memory"
+      ],
+      "properties": {
+        "cpu": {
+          "$ref": "#/definitions/quantity"
+        },
+        "memory": {
+          "$ref": "#/definitions/quantity"
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "required": [
+        "limits",
+        "requests"
+      ],
+      "properties": {
+        "limits": {
+          "$ref": "#/definitions/resourceBlock"
+        },
+        "requests": {
+          "$ref": "#/definitions/resourceBlock"
+        }
+      }
+    },
+    "tier": {
+      "type": "object",
+      "required": [
+        "enabled"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "replicaCount": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "image": {
+          "type": "object",
+          "required": [
+            "repository",
+            "tag"
+          ],
+          "properties": {
+            "repository": {
+              "type": "string",
+              "minLength": 1
+            },
+            "tag": {
+              "type": "string",
+              "minLength": 1
+            },
+            "pullPolicy": {
+              "enum": [
+                "Always",
+                "IfNotPresent",
+                "Never"
+              ]
+            }
+          }
+        },
+        "resources": {
+          "$ref": "#/definitions/resources"
+        }
+      },
+      "if": {
+        "properties": {
+          "enabled": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "replicaCount",
+          "image",
+          "resources"
+        ]
+      }
+    }
+  },
+  "properties": {
+    "global": {
+      "type": "object",
+      "required": [
+        "dbName"
+      ],
+      "properties": {
+        "appName": {
+          "type": "string"
+        },
+        "dbName": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        }
+      }
+    },
+    "frontend": {
+      "$ref": "#/definitions/tier"
+    },
+    "api": {
+      "$ref": "#/definitions/tier"
+    },
+    "database": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/tier"
+        },
+        {
+          "properties": {
+            "replicaCount": {
+              "maximum": 1
+            }
+          }
+        }
+      ]
+    },
+    "ingress": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "host": {
+          "type": "string"
+        },
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "path",
+              "service"
+            ],
+            "properties": {
+              "path": {
+                "type": "string",
+                "pattern": "^/"
+              },
+              "service": {
+                "enum": [
+                  "frontend",
+                  "api"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "enabled": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "host"
+        ],
+        "properties": {
+          "host": {
+            "type": "string",
+            "minLength": 3
+          }
+        }
+      }
+    },
+    "networkPolicy": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "migration": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "resources": {
+          "$ref": "#/definitions/resources"
+        }
+      }
+    },
+    "irsa": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "roleArn": {
+          "type": "string",
+          "pattern": "^(arn:aws:iam::[0-9]{12}:role/.+)?$"
+        }
+      }
+    },
+    "secretsManager": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "region": {
+          "type": "string",
+          "pattern": "^[a-z]{2}-[a-z]+-[0-9]$"
+        },
+        "secretName": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

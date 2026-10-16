@@ -1,0 +1,43 @@
+global:
+  appName: threetier
+  dbName: appdb
+
+# --- tier toggles (if/else control flow) ---
+# (service ports repeated here so the NetworkPolicy still renders when a tier is toggled off)
+frontend: {enabled: true, service: {port: 80, targetPort: 8080}}
+api:      {enabled: true, service: {port: 80, targetPort: 3000}}
+database: {enabled: true, service: {port: 5432, targetPort: 5432}}   # false = external DB (set api.dbHost)
+
+# --- IRSA (IAM Roles for Service Accounts) + AWS Secrets Manager CSI provider ---
+irsa:
+  enabled: true
+  roleArn: ""               # IAM role the ServiceAccount assumes (arn:aws:iam::<acct>:role/...)
+secretsManager:
+  enabled: true
+  region: us-east-1
+  secretName: ""            # Secrets Manager secret holding JSON {"username":"..","password":".."}
+
+# --- Ingress / TLS ---
+ingress:
+  enabled: true
+  className: nginx
+  host: ""                  # e.g. app.example.com (Route 53 hosted zone)
+  tls:
+    enabled: true
+    secretName: threetier-tls
+    clusterIssuer: letsencrypt-prod   # use letsencrypt-staging while testing
+  paths:                    # consumed by threetier.ingressPaths helper
+    - {path: /api, service: api,      pathType: Prefix}
+    - {path: /,    service: frontend, pathType: Prefix}
+
+networkPolicy:
+  enabled: true
+  ingressControllerNamespace: ingress-nginx
+
+# --- pre-install/pre-upgrade migration hook ---
+migration:
+  enabled: true
+  image: busybox:1.36
+  resources:
+    requests: {cpu: 10m, memory: 16Mi}
+    limits: {cpu: 100m, memory: 64Mi}
