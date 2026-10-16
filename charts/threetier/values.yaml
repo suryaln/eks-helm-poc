@@ -4,9 +4,38 @@ global:
 
 # --- tier toggles (if/else control flow) ---
 # (service ports repeated here so the NetworkPolicy still renders when a tier is toggled off)
-frontend: {enabled: true, service: {port: 80, targetPort: 8080}}
-api:      {enabled: true, service: {port: 80, targetPort: 3000}}
-database: {enabled: true, service: {port: 5432, targetPort: 5432}}   # false = external DB (set api.dbHost)
+# frontend: {enabled: true, service: {port: 80, targetPort: 8080}}
+# api:      {enabled: true, service: {port: 80, targetPort: 3000}}
+# database: {enabled: true, service: {port: 5432, targetPort: 5432}}   # false = external DB (set api.dbHost)
+
+# Tier settings live here so the schema can validate them and you can see every limit in one place.
+# These override the defaults inside charts/<tier>/values.yaml.
+frontend:
+  enabled: true
+  replicaCount: 2
+  image: {repository: nginxinc/nginx-unprivileged, tag: 1.27-alpine, pullPolicy: IfNotPresent}
+  service: {port: 80, targetPort: 8080}
+  resources:
+    requests: {cpu: 50m, memory: 64Mi}
+    limits: {cpu: 200m, memory: 128Mi}
+
+api:
+  enabled: true
+  replicaCount: 2
+  image: {repository: node, tag: 20-alpine, pullPolicy: IfNotPresent}
+  service: {port: 80, targetPort: 3000}
+  resources:
+    requests: {cpu: 100m, memory: 128Mi}
+    limits: {cpu: 300m, memory: 256Mi}
+
+database:                     # enabled: false = use an external DB (set api.dbHost)
+  enabled: true
+  replicaCount: 1
+  image: {repository: postgres, tag: 16-alpine, pullPolicy: IfNotPresent}
+  service: {port: 5432, targetPort: 5432}
+  resources:
+    requests: {cpu: 100m, memory: 256Mi}
+    limits: {cpu: 500m, memory: 512Mi}
 
 # --- IRSA (IAM Roles for Service Accounts) + AWS Secrets Manager CSI provider ---
 irsa:
