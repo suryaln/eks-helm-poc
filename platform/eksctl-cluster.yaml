@@ -16,7 +16,7 @@ addons:
   - name: kube-proxy
 managedNodeGroups:
   - name: ng-1
-    instanceType: t3.small
+    instanceType: t3.small #because t3.medium is not available in free tier account
     desiredCapacity: 5
     minSize: 4
     maxSize: 6
