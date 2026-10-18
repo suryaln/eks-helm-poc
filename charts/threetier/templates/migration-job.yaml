@@ -6,9 +6,9 @@ metadata:
   labels:
     {{- include "common.labels" . | nindent 4 }}
   annotations:
-    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook": pre-install,pre-upgrade #tell helm to execute this job before other (deploy,etc..)
     "helm.sh/hook-weight": "0"
-    "helm.sh/hook-delete-policy": before-hook-creation
+    "helm.sh/hook-delete-policy": before-hook-creation #Ensures any old migration job from a previous release is cleaned up before a new migration job runs.
 spec:
   backoffLimit: 1
   template:
