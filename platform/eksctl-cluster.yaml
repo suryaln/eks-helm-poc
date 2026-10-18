@@ -3,7 +3,7 @@ kind: ClusterConfig
 metadata:
   name: helm-poc
   region: us-east-1
-  version: "1.31"          # use a currently supported EKS version
+  version: "1.36"          # use a currently supported EKS version
 iam:
   withOIDC: true           # required for IRSA
 addons:
@@ -16,8 +16,8 @@ addons:
   - name: kube-proxy
 managedNodeGroups:
   - name: ng-1
-    instanceType: t3.medium
-    desiredCapacity: 2
-    minSize: 2
-    maxSize: 3
+    instanceType: t3.small
+    desiredCapacity: 5
+    minSize: 4
+    maxSize: 6
     volumeSize: 30
