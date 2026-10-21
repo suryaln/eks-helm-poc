@@ -14,8 +14,8 @@ export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 ## 1. EKS cluster
 ```bash
 # edit region/version in platform/eksctl-cluster.yaml first
-eksctl create cluster -f platform/eksctl-cluster.yaml
-kubectl apply -f platform/storageclass-gp3.yaml
+eksctl create cluster -f platform/eksctl-cluster.yaml     #check physical machine before running (need to give values threetier/values.yaml)
+kubectl apply -f platform/storageclass-gp3.yaml 
 export OIDC_HOST=$(aws eks describe-cluster --name $CLUSTER --region $REGION \
   --query cluster.identity.oidc.issuer --output text | sed 's#https://##')
 ```
