@@ -11,8 +11,3 @@
   }]
 }
 
-/* "Federated": "arn:aws:iam::123456789012:oidc-provider/oidc.eks.ap-south-1.amazonaws.com/id/EXAMPLED5E1802C54D21A3170100FF51"
-
-This means only the Pods running in the threetier namespace using the 
-threetier-workload ServiceAccount (specifically, your API and CSI pods) are allowed to assume the role 
-*/
