@@ -39,6 +39,13 @@ POLICY_ARN=$(aws iam create-policy --policy-name helm-poc-app-secrets \
 aws iam attach-role-policy --role-name helm-poc-app --policy-arn $POLICY_ARN
 export APP_ROLE_ARN=arn:aws:iam::$ACCOUNT_ID:role/helm-poc-app
 ```
+
+/* "Federated": "arn:aws:iam::123456789012:oidc-provider/oidc.eks.ap-south-1.amazonaws.com/id/EXAMPLED5E1802C54D21A3170100FF51"
+
+This means only the Pods running in the threetier namespace using the 
+threetier-workload ServiceAccount (specifically, your API and CSI pods) are allowed to assume the role 
+*/
+
 The trust policy pins the role to ONE ServiceAccount (`system:serviceaccount:<ns>:<name>`) and audience `sts.amazonaws.com`; the permission policy allows reading ONE secret (least privilege).
 
 ## 3. Secrets Store CSI driver + AWS provider
