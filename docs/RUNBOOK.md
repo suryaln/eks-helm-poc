@@ -51,7 +51,16 @@ The trust policy pins the role to ONE ServiceAccount (`system:serviceaccount:<ns
 ## 3. Secrets Store CSI driver + AWS provider
 ```bash
 helm repo add secrets-store-csi-driver https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
+
+# The Secrets Store CSI Driver is a vendor-neutral Kubernetes SIG project that manages the lifecycle of
+# pod volume mounts and native secret synchronization (syncSecret.enabled=true). It delegates the actual
+# cloud authentication and retrieval logic to provider plugins via gRPC.
+
 helm repo add aws-secrets-manager https://aws.github.io/secrets-store-csi-driver-provider-aws
+
+# aws-secrets-manager provider is the AWS-specific plugin required to speak to AWS STS and AWS Secrets
+# Manager using IRSA. Without both components running as DaemonSets on the node, the CSI driver cannot fetch secrets from AWS
+
 helm repo update
 helm install csi-secrets-store secrets-store-csi-driver/secrets-store-csi-driver -n kube-system \
   --set syncSecret.enabled=true --set enableSecretRotation=true
