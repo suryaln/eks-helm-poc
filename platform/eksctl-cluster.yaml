@@ -17,7 +17,7 @@ addons:
 managedNodeGroups:
   - name: ng-1
     instanceType: m7i-flex.large #because t3.medium is not available in free tier account
-    desiredCapacity: 5
-    minSize: 4
-    maxSize: 6
+    desiredCapacity: 4
+    minSize: 3
+    maxSize: 5
     volumeSize: 30
